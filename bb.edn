@@ -1,0 +1,23 @@
+{:paths
+ ["scripts"]
+
+ :deps
+ {}
+
+ :min-bb-version
+ "0.7.0"
+
+ :tasks
+ {:requires         ([babashka.fs :as fs]
+                     [babashka.process :refer [sh]]
+                     [clojure.string :as str])
+
+  ;; task hooks
+  :init             (do
+                      (defn env [s] (System/getenv s))
+                      (def windows? (-> (System/getProperty "os.name") (str/lower-case) (str/starts-with? "win"))))
+
+  prepare {:task prepare/run}
+
+  build           {:doc  "Run FS integration tests"
+                     :task run}}}

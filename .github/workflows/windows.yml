@@ -1,0 +1,46 @@
+name: Build FFmpeg on Windows
+on:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [main, master]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git base-devel diffutils mingw-w64-x86_64-gcc mingw-w64-x86_64-pkg-config yasm
+
+      - name: "Build FFmpeg"
+        shell: msys2 {0}
+        run: |
+          git clone --depth=1 --branch='n5.0' https://github.com/FFmpeg/FFmpeg
+          cd FFmpeg
+          ./configure --prefix=/opt/ffmpeg --disable-everything --enable-decoders --enable-parsers --enable-demuxers --enable-protocol=file --enable-bsfs --enable-hwaccels --enable-small --disable-debug --disable-static --enable-shared --disable-runtime-cpudetect --disable-ffprobe --disable-doc --disable-network --enable-swresample
+          make -j4
+          make install
+
+      - name: Package artifacts
+        shell: msys2 {0}
+        run: |
+          mkdir package
+          mkdir package/bin package/include package/lib
+          cp /opt/ffmpeg/bin/*.dll ./package/bin
+          cp -r /opt/ffmpeg/include/* ./package/include
+          cp /opt/ffmpeg/bin/*.lib ./package/lib
+          cp /opt/ffmpeg/lib/*.def ./package/lib
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ffmpeg-n5.0-shared
+          path: package
