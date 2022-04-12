@@ -35,7 +35,6 @@ jobs:
           rm -rf package
           mkdir package
           mkdir package/bin package/include package/lib
-          ls /mingw64/bin
           cp /mingw64/bin/{zlib*.dll,libiconv-*.dll} ./package/bin
           cp /opt/ffmpeg/bin/*.dll ./package/bin
           cp -r /opt/ffmpeg/include/* ./package/include
@@ -45,7 +44,7 @@ jobs:
       - name: Upload artifacts - Minimal
         uses: actions/upload-artifact@v2
         with:
-          name: ffmpeg-n5.0-shared-minimal
+          name: ffmpeg-n5.0-shared-minimal-win
           path: package
 
       - name: Build FFmpeg - Essentials
@@ -70,11 +69,10 @@ jobs:
           cp -r /opt/ffmpeg/include/* ./package/include
           cp /opt/ffmpeg/bin/*.lib ./package/lib
           cp /opt/ffmpeg/lib/*.def ./package/lib
-          ls /mingw64/bin
           cp /mingw64/bin/{libdav1d.dll,libiconv-*.dll,libogg-*.dll,libopus-*.dll,libssp-*.dll,libvorbis-*.dll,libvorbisfile-*.dll,libvpx-*.dll,libwinpthread-*.dll,zlib*.dll} ./package/bin
 
       - name: Upload artifacts - Essentials
         uses: actions/upload-artifact@v2
         with:
-          name: ffmpeg-n5.0-shared-essentials
+          name: ffmpeg-n5.0-shared-essentials-win
           path: package
