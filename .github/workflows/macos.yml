@@ -35,6 +35,7 @@ jobs:
           ls /usr/local/opt/ffmpeg/lib/
           find /usr/local/opt/ffmpeg/lib -name "*.dylib" -type f -exec cp {} ./package/bin ";"
           cp -r /usr/local/opt/ffmpeg/include/* ./package/include
+          zip -r ffmpeg-n5.0-shared-minimal-mac.zip ./package/*
         # x11_lib=$(pkg-config --libs-only-L x11)
         # xcb_lib=$(pkg-config --libs-only-L xcb)
         # cp ${x11_lib#"-L"}/*.dylib ./package/bin
@@ -44,26 +45,13 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ffmpeg-n5.0-shared-minimal-mac
-          path: package
+          path: ffmpeg-n5.0-shared-minimal-mac.zip
 
-      # https://github.com/softprops/action-gh-release/issues/79
       - name: Download artifacts - Minimal
         uses: actions/download-artifact@v2
         with:
           name: ffmpeg-n5.0-shared-minimal-mac
           path: ffmpeg-n5.0-shared-minimal-mac
-
-      - name: List files
-        run: |
-          ls ffmpeg-n5.0-shared-minimal-mac 2> /dev/null
-          echo "--------"
-          ls package 2> /dev/null
-          echo "--------"
-          ls 2> /dev/null
-          echo "========"
-          pwd
-          ls
-          ls build-ffmpeg 2> /dev/null
 
       - name: Create release - Minimal
         uses: softprops/action-gh-release@v1

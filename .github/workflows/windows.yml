@@ -41,11 +41,24 @@ jobs:
           cp /opt/ffmpeg/bin/*.lib ./package/lib
           cp /opt/ffmpeg/lib/*.def ./package/lib
 
+      - name: Zip files
+        run: |
+          Compress-Archive -Path .\package\ -DestinationPath ffmpeg-n5.0-shared-minimal-win.zip
+
       - name: Upload artifacts - Minimal
         uses: actions/upload-artifact@v2
         with:
           name: ffmpeg-n5.0-shared-minimal-win
-          path: package
+          path: ffmpeg-n5.0-shared-minimal-win.zip
+
+      - name: Create release - Minimal
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: ffmpeg-n5.0-shared-minimal-win
+          tag_name: ffmpeg-n5.0-shared-minimal-win
+          files: ffmpeg-n5.0-shared-minimal-win.zip
 
       ### Essentials - Disable for now.
 
