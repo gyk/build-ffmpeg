@@ -53,6 +53,18 @@ jobs:
           name: ffmpeg-n5.0-shared-minimal-mac
           path: ffmpeg-n5.0-shared-minimal-mac
 
+      - name: List files
+        run: |
+          ls ffmpeg-n5.0-shared-minimal-mac 2> /dev/null
+          echo "--------"
+          ls package 2> /dev/null
+          echo "--------"
+          ls 2> /dev/null
+          echo "========"
+          pwd
+          ls
+          ls build-ffmpeg 2> /dev/null
+
       - name: Create release - Minimal
         uses: softprops/action-gh-release@v1
         env:
