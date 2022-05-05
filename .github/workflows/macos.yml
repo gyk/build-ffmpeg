@@ -1,0 +1,93 @@
+name: Build FFmpeg on macOS
+on:
+  push:
+    branches: [main, master]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [main, master]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install system dependencies
+        run: |
+          brew update
+          brew install pkg-config yasm diffutils
+
+      - name: Build FFmpeg - Minimal
+        run: |
+          git clone --depth=1 --branch='n5.0' https://github.com/FFmpeg/FFmpeg
+          cd FFmpeg
+          ./configure --prefix=/usr/local/opt/ffmpeg --disable-autodetect --disable-everything --enable-decoders --enable-parsers --enable-demuxers --enable-protocol=file --enable-bsfs --enable-hwaccels --enable-small --disable-debug --disable-static --enable-shared --disable-runtime-cpudetect --disable-ffprobe --disable-doc --disable-network --enable-swresample --extra-cflags=-mmacosx-version-min=10.14 --extra-ldflags=-mmacosx-version-min=10.14
+          make -j4
+          make install
+
+      - name: Package artifacts - Minimal
+        run: |
+          mkdir package
+          mkdir package/bin package/include package/lib
+          ls /usr/local/opt/ffmpeg/bin/
+          ls /usr/local/opt/ffmpeg/lib/
+          find /usr/local/opt/ffmpeg/lib -name "*.dylib" -type f -exec cp {} ./package/bin ";"
+          cp -r /usr/local/opt/ffmpeg/include/* ./package/include
+          zip -r ffmpeg-n5.0-shared-minimal-mac.zip ./package/*
+        # x11_lib=$(pkg-config --libs-only-L x11)
+        # xcb_lib=$(pkg-config --libs-only-L xcb)
+        # cp ${x11_lib#"-L"}/*.dylib ./package/bin
+        # cp ${xcb_lib#"-L"}/*.dylib ./package/bin
+
+      - name: Upload artifacts - Minimal
+        uses: actions/upload-artifact@v2
+        with:
+          name: ffmpeg-n5.0-shared-minimal-mac
+          path: ffmpeg-n5.0-shared-minimal-mac.zip
+
+      - name: Download artifacts - Minimal
+        uses: actions/download-artifact@v2
+        with:
+          name: ffmpeg-n5.0-shared-minimal-mac
+          path: ffmpeg-n5.0-shared-minimal-mac
+
+      - name: Create release - Minimal
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: ffmpeg-n5.0-shared-minimal-mac
+          tag_name: ffmpeg-n5.0-shared-minimal-mac
+          files: ffmpeg-n5.0-shared-minimal-mac/*
+
+
+      ### Essentials - Disable for now.
+
+      # - name: Build FFmpeg - Essentials
+      #   run: |
+      #     git clone --depth=1 --branch='n5.0' https://github.com/FFmpeg/FFmpeg
+      #     cd FFmpeg
+      #     brew install dav1d libvorbis libvpx opus
+      #     ./configure --arch=amd64 --prefix=/usr/local/opt/ffmpeg --disable-everything --enable-decoders --enable-parsers --enable-demuxers --enable-protocol=file --enable-bsfs --enable-hwaccels --enable-libdav1d --enable-libvpx --enable-libvorbis --enable-libopus --enable-small --disable-debug --disable-static --enable-shared --disable-runtime-cpudetect --disable-ffprobe --disable-doc --disable-network --enable-swresample --extra-cflags=-mmacosx-version-min=10.14 --extra-ldflags=-mmacosx-version-min=10.14
+      #     make -j4
+      #     make install
+
+      # - name: Package artifacts - Essentials
+      #   run: |
+      #     rm -rf package
+      #     mkdir package
+      #     mkdir package/bin package/include package/lib
+      #     find /usr/local/opt/ffmpeg/lib -name "*.dylib" -type f -exec cp {} ./package/bin ";"
+      #     cp -r /usr/local/opt/ffmpeg/include/* ./package/include
+      #     echo "--------------------------------"
+      #     ls /usr/local/lib
+      #     echo "--------------------------------"
+      #     cp /usr/local/lib/{libdav1d.dylib,libiconv-*.dylib,libogg-*.dylib,libopus-*.dylib,libssp-*.dylib,libvorbis-*.dylib,libvorbisfile-*.dylib,libvpx-*.dylib,libwinpthread-*.dylib,zlib*.dylib} ./package/bin
+
+      # - name: Upload artifacts - Essentials
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: ffmpeg-n5.0-shared-essentials-mac
+      #     path: package
